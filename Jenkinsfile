@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        REPO_URL = 'https://github.com/your-username/stock-predictor.git'
+        REPO_URL = 'https://github.com/Shadow3456rh/stock-predictor.git'
         MODEL_FILE = 'models.pkl'
     }
 
@@ -25,8 +25,8 @@ pipeline {
                     sh """
                     git config --global user.email "your-email@example.com"
                     git config --global user.name "Jenkins"
-                    git add ${MODEL_FILE}
-                    git commit -m "Updated model.pkl - $(date)" || echo "No changes to commit"
+                    git add \${MODEL_FILE}
+                    git commit -m "Updated models.pkl - $(date)" || echo "No changes to commit"
                     git push origin main
                     """
                 }
@@ -50,10 +50,10 @@ pipeline {
 
     post {
         failure {
-            echo 'Pipeline Failed! Check logs for errors.'
+            echo '❌ Pipeline Failed! Check logs for errors.'
         }
         success {
-            echo 'Pipeline executed successfully!'
+            echo '✅ Pipeline executed successfully!'
         }
     }
 }
