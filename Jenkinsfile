@@ -22,13 +22,13 @@ pipeline {
         stage('Commit and Push Model') {
             steps {
                 script {
-                    sh """
+                    sh '''
                     git config --global user.email "your-email@example.com"
                     git config --global user.name "Jenkins"
-                    git add \${MODEL_FILE}
+                    git add $MODEL_FILE
                     git commit -m "Updated models.pkl - $(date)" || echo "No changes to commit"
                     git push origin main
-                    """
+                    '''
                 }
             }
         }
