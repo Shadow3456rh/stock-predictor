@@ -6,5 +6,7 @@ COPY . /app
 
 RUN pip install --no-cache-dir flask yfinance scikit-learn pandas matplotlib
 
+EXPOSE 5000
+
 CMD ["python", "app.py"]
 
