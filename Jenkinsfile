@@ -1,13 +1,13 @@
 pipeline {
     agent any
     triggers {
-        cron('H 0 * * *')  // Runs the pipeline every day at midnight
+        cron('H 0 * * *')  
     }
 
     environment {
         REPO_URL = 'https://github.com/Shadow3456rh/stock-predictor.git'
         MODEL_FILE = 'models.pkl'
-        GITHUB_PAT = credentials('GITHUB_PAT')  // Securely stored in Jenkins Credentials
+        GITHUB_PAT = credentials('GITHUB_PAT')
     }
 
     stages {
