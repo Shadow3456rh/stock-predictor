@@ -1,8 +1,8 @@
 pipeline {
     agent any
-    triggers {
-        cron('H 0 * * *')  
-    }
+   triggers {
+    cron('H/30 * * * *')  
+}
 
     environment {
         REPO_URL = 'https://github.com/Shadow3456rh/stock-predictor.git'
