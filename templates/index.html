@@ -12,9 +12,9 @@
     </form>
 
     {% if prediction %}
-        <h3>Predicted Price: ${{ prediction }}</h3>
-        <h3>Real Price: ${{ real_price }}</h3>
+        <h3>Predicted Price (Today): ${{ prediction }}</h3>
+        <h3>Real Price (Today): ${{ real_price }}</h3>
+        <h3>Predicted Price (Tomorrow): ${{ tomorrow_prediction }}</h3>
     {% endif %}
 </body>
 </html>
-
