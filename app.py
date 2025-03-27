@@ -7,7 +7,7 @@ import traceback  # For debugging errors
 app = Flask(__name__)
 
 # Load all trained models
-with open(r"D:\Abhishek\DSA\stock-predictor\models.pkl", "rb") as f:
+with open(r"models.pkl", "rb") as f:
     models = pickle.load(f)
 
 @app.route("/", methods=["GET", "POST"])
