@@ -1,8 +1,8 @@
 pipeline {
     agent any
-   triggers {
-    cron('H/30 * * * *')  
-}
+    triggers {
+        cron('H/30 * * * *')  
+    }
 
     environment {
         REPO_URL = 'https://github.com/Shadow3456rh/stock-predictor.git'
@@ -17,9 +17,15 @@ pipeline {
             }
         }
 
+        stage('Build Docker Image') {
+            steps {
+                sh 'docker build -t stock-predictor .'
+            }
+        }
+
         stage('Train Model') {
             steps {
-                sh 'python3 train_model.py'
+                sh 'docker run --rm -v $(pwd):/app stock-predictor python3 /app/train_model.py'
             }
         }
 
@@ -36,12 +42,6 @@ pipeline {
                     git push https://Shadow3456rh:$GITHUB_PAT@github.com/Shadow3456rh/stock-predictor.git main
                     '''
                 }
-            }
-        }
-
-        stage('Build Docker Image') {
-            steps {
-                sh 'docker build -t stock-predictor .'
             }
         }
 
