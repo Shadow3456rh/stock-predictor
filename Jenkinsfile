@@ -25,7 +25,7 @@ pipeline {
 
         stage('Train Model') {
             steps {
-                sh 'docker run --rm -v $(pwd):/app stock-predictor python3 /app/train_model.py'
+                sh 'docker run --rm -v "$(pwd):/app" stock-predictor python3 /app/train_model.py'
             }
         }
 
