@@ -62,14 +62,14 @@ pipeline {
             script {
                 emailext subject: "Jenkins Pipeline SUCCESS ✅",
                          body: "The Jenkins pipeline *stock-predictor* has successfully completed. ✅",
-                         to: "${RECIPIENTS}"
+                         to: "abhishekangadismailbox@gmail.com"
             }
         }
         failure {
             script {
                 emailext subject: "Jenkins Pipeline FAILURE ❌",
                          body: "The Jenkins pipeline *stock-predictor* has failed. ❌\n\nCheck Jenkins logs for more details.",
-                         to: "${RECIPIENTS}"
+                         to: "abhishekangadismailbox@gmail.com"
             }
         }
     }
