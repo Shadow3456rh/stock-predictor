@@ -58,12 +58,11 @@ pipeline {
     }
 
 post {
-        success {
-            snsNotification subject: '✅ Jenkins Pipeline Success', message: "Pipeline ran successfully!", topicArn: 'arn:aws:sns:us-east-1:123456789012:JenkinsNotifications'
-        }
-        failure {
-            snsNotification subject: '❌ Jenkins Pipeline Failed', message: "Pipeline failed. Check logs!", topicArn: 'arn:aws:sns:us-east-1:123456789012:JenkinsNotifications'
-        }
+    success {
+        snsPublish(
+            topicArn: 'arn:aws:sns:us-east-1:936492767593:JenkinsNotifications',
+            message: "Pipeline Success: ${env.JOB_NAME} #${env.BUILD_NUMBER}"
+        )
     }
-
+}
 }
