@@ -58,24 +58,12 @@ pipeline {
     }
 
 post {
-    success {
-        emailext(
-            subject: "✅ Build SUCCESS: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-            body: "Good news! The pipeline ran successfully. \nCheck details at: ${env.BUILD_URL}",
-            to: "abhishekangadismailbox@gmail.com",
-            from: "abhishekangadismailbox@gmail.com",
-            replyTo: "abhishekangadismailbox@gmail.com"
-        )
+        success {
+            snsNotification subject: '✅ Jenkins Pipeline Success', message: "Pipeline ran successfully!", topicArn: 'arn:aws:sns:us-east-1:123456789012:JenkinsNotifications'
+        }
+        failure {
+            snsNotification subject: '❌ Jenkins Pipeline Failed', message: "Pipeline failed. Check logs!", topicArn: 'arn:aws:sns:us-east-1:123456789012:JenkinsNotifications'
+        }
     }
-    failure {
-        emailext(
-            subject: "❌ Build FAILED: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-            body: "Oops! The pipeline failed. \nCheck logs: ${env.BUILD_URL}",
-            to: "abhishekangadismailbox@gmail.com",
-            from: "abhishekangadismailbox@gmail.com",
-            replyTo: "abhishekangadismailbox@gmail.com"
-        )
-    }
-}
 
 }
