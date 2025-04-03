@@ -8,6 +8,7 @@ pipeline {
         REPO_URL = 'https://github.com/Shadow3456rh/stock-predictor.git'
         MODEL_FILE = 'models.pkl'
         GITHUB_PAT = credentials('GITHUB_PAT')
+        RECIPIENTS = 'your-email@gmail.com'
     }
 
     stages {
@@ -58,10 +59,18 @@ pipeline {
 
     post {
         success {
-            echo '✅ Pipeline executed successfully!'
+            script {
+                emailext subject: "Jenkins Pipeline SUCCESS ✅",
+                         body: "The Jenkins pipeline *stock-predictor* has successfully completed. ✅",
+                         to: "${RECIPIENTS}"
+            }
         }
         failure {
-            echo '❌ Pipeline Failed! Check logs for errors.'
+            script {
+                emailext subject: "Jenkins Pipeline FAILURE ❌",
+                         body: "The Jenkins pipeline *stock-predictor* has failed. ❌\n\nCheck Jenkins logs for more details.",
+                         to: "${RECIPIENTS}"
+            }
         }
     }
 }
