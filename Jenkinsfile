@@ -59,10 +59,17 @@ pipeline {
 
 post {
     success {
-        snsPublish(
+        snsNotification(
             topicArn: 'arn:aws:sns:us-east-1:936492767593:JenkinsNotifications',
-            message: "Pipeline Success: ${env.JOB_NAME} #${env.BUILD_NUMBER}"
+            message: "Jenkins job '${env.JOB_NAME}' (#${env.BUILD_NUMBER}) was successful! Check: ${env.BUILD_URL}"
+        )
+    }
+    failure {
+        snsNotification(
+            topicArn: 'arn:aws:sns:us-east-1:936492767593:JenkinsNotifications',
+            message: "Jenkins job '${env.JOB_NAME}' (#${env.BUILD_NUMBER}) FAILED! Check: ${env.BUILD_URL}"
         )
     }
 }
+
 }
