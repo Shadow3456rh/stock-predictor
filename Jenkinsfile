@@ -57,20 +57,21 @@ pipeline {
         }
     }
 
-    post {
-        success {
-            script {
-                emailext subject: "Jenkins Pipeline SUCCESS ✅",
-                         body: "The Jenkins pipeline *stock-predictor* has successfully completed. ✅",
-                         to: "abhishekangadismailbox@gmail.com"
-            }
-        }
-        failure {
-            script {
-                emailext subject: "Jenkins Pipeline FAILURE ❌",
-                         body: "The Jenkins pipeline *stock-predictor* has failed. ❌\n\nCheck Jenkins logs for more details.",
-                         to: "abhishekangadismailbox@gmail.com"
-            }
-        }
+   post {
+    success {
+        emailext(
+            subject: "✅ SUCCESS: $JOB_NAME - Build #$BUILD_NUMBER",
+            body: "The Jenkins job $JOB_NAME completed successfully.\nCheck details here: $BUILD_URL",
+            recipientProviders: [[$class: 'DevelopersRecipientProvider']],
+            to: "abhishekangadismailbox@gmail.com"
+        )
+    }
+    failure {
+        emailext(
+            subject: "❌ FAILURE: $JOB_NAME - Build #$BUILD_NUMBER",
+            body: "The Jenkins job $JOB_NAME has failed.\nCheck details here: $BUILD_URL",
+            recipientProviders: [[$class: 'DevelopersRecipientProvider']],
+            to: "abhishekangadismailbox@gmail.com"
+        )
     }
 }
