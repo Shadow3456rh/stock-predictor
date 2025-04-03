@@ -57,20 +57,25 @@ pipeline {
         }
     }
 
-   post {
+post {
     success {
-        emailext subject: "✅ Build SUCCESS: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-                 body: "Good news! The pipeline ran successfully. \nCheck details at: ${env.BUILD_URL}",
-                 to: "abhishekangadismailbox@gmail.com",
-                 from: "abhishekangadismailbox@gmail.com",
-                 replyTo: "abhishekangadismailbox@gmail.com"
+        emailext(
+            subject: "✅ Build SUCCESS: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+            body: "Good news! The pipeline ran successfully. \nCheck details at: ${env.BUILD_URL}",
+            to: "abhishekangadismailbox@gmail.com",
+            from: "abhishekangadismailbox@gmail.com",
+            replyTo: "abhishekangadismailbox@gmail.com"
+        )
     }
     failure {
-        emailext subject: "❌ Build FAILED: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-                 body: "Oops! The pipeline failed. \nCheck logs: ${env.BUILD_URL}",
-                 to: "abhishekangadismailbox@gmail.com",
-                 from: "abhishekangadismailbox@gmail.com",
-                 replyTo: "abhishekangadismailbox@gmail.com"
+        emailext(
+            subject: "❌ Build FAILED: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+            body: "Oops! The pipeline failed. \nCheck logs: ${env.BUILD_URL}",
+            to: "abhishekangadismailbox@gmail.com",
+            from: "abhishekangadismailbox@gmail.com",
+            replyTo: "abhishekangadismailbox@gmail.com"
+        )
     }
 }
+
 }
