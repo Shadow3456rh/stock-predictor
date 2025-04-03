@@ -57,27 +57,46 @@ pipeline {
         }
     }
 
- post {
+post {
     success {
         script {
-            sh """
-            aws sns publish --region us-east-1 \
-            --topic-arn arn:aws:sns:us-east-1:936492767593:JenkinsNotifications \
-            --message "✅ SUCCESS: Build ${env.JOB_NAME} #${env.BUILD_NUMBER} completed successfully. \nBuild log: ${env.BUILD_URL}"
-            """
+            withCredentials([
+                string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
+                string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY'),
+                string(credentialsId: 'AWS_SNS_TOPIC_ARN', variable: 'SNS_TOPIC_ARN')
+            ]) {
+                sh """
+                export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+                export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+                
+                aws sns publish --region us-east-1 \
+                --topic-arn ${SNS_TOPIC_ARN} \
+                --message "✅ SUCCESS: Build ${env.JOB_NAME} #${env.BUILD_NUMBER} completed successfully. \nBuild log: ${env.BUILD_URL}"
+                """
+            }
         }
     }
-    
+
     failure {
         script {
-            sh """
-            aws sns publish --region us-east-1 \
-            --topic-arn arn:aws:sns:us-east-1:936492767593:JenkinsNotifications \
-            --message "❌ FAILURE: Build ${env.JOB_NAME} #${env.BUILD_NUMBER} failed. \nBuild log: ${env.BUILD_URL}"
-            """
+            withCredentials([
+                string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
+                string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY'),
+                string(credentialsId: 'AWS_SNS_TOPIC_ARN', variable: 'SNS_TOPIC_ARN')
+            ]) {
+                sh """
+                export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+                export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+                
+                aws sns publish --region us-east-1 \
+                --topic-arn ${SNS_TOPIC_ARN} \
+                --message "❌ FAILURE: Build ${env.JOB_NAME} #${env.BUILD_NUMBER} failed. \nBuild log: ${env.BUILD_URL}"
+                """
+            }
         }
     }
 }
+
 
 
 
