@@ -58,25 +58,15 @@ pipeline {
     }
 
  post {
-        success {
-            snsNotifier(
-                topicArn: 'arn:aws:sns:us-east-1:936492767593:JenkinsNotifications',
-                subject: 'Jenkins Build Success',
-                message: "Build ${currentBuild.fullDisplayName} completed successfully.",
-                awsAccessKey: 'AKIA5UC2RTFUWCYSWLUL',
-                awsSecretKey: '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'
-            )
-        }
-        failure {
-            snsNotifier(
-                topicArn: 'arn:aws:sns:us-east-1:936492767593:JenkinsNotifications',
-                subject: 'Jenkins Build Failed',
-                message: "Build ${currentBuild.fullDisplayName} failed.",
-                    awsAccessKey: 'AKIA5UC2RTFUWCYSWLUL',
-                awsSecretKey: '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'
-            )
-        }
+    always {
+        snsPublisher(
+            topicArn: 'arn:aws:sns:us-east-1:936492767593:JenkinsNotifications',
+            subject: "Build ${env.JOB_NAME} #${env.BUILD_NUMBER} - ${currentBuild.currentResult}",
+            message: "Build log: ${env.BUILD_URL}"
+        )
     }
+}
+
 
 
 }
