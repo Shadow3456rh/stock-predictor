@@ -59,7 +59,7 @@ pipeline {
 
  post {
     always {
-        snsPublisher(
+        snsPublish(
             topicArn: 'arn:aws:sns:us-east-1:936492767593:JenkinsNotifications',
             subject: "Build ${env.JOB_NAME} #${env.BUILD_NUMBER} - ${currentBuild.currentResult}",
             message: "Build log: ${env.BUILD_URL}"
