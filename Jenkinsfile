@@ -57,13 +57,26 @@ pipeline {
         }
     }
 
-post {
-    success {
-        snsNotifier topicArn: 'arn:aws:sns:us-east-1:936492767593:JenkinsNotifications',
-                    message: "Jenkins job '${env.JOB_NAME}' (#${env.BUILD_NUMBER}) was successful! Check: ${env.BUILD_URL}"
+ post {
+        success {
+            snsNotifier(
+                topicArn: 'arn:aws:sns:us-east-1:936492767593:JenkinsNotifications',
+                subject: 'Jenkins Build Success',
+                message: "Build ${currentBuild.fullDisplayName} completed successfully.",
+                awsAccessKey: 'AKIA5UC2RTFUWCYSWLUL',
+                awsSecretKey: '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'
+            )
+        }
+        failure {
+            snsNotifier(
+                topicArn: 'arn:aws:sns:us-east-1:936492767593:JenkinsNotifications',
+                subject: 'Jenkins Build Failed',
+                message: "Build ${currentBuild.fullDisplayName} failed.",
+                    awsAccessKey: 'AKIA5UC2RTFUWCYSWLUL',
+                awsSecretKey: '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'
+            )
+        }
     }
-}
-
 
 
 }
