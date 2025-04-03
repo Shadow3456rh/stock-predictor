@@ -8,7 +8,7 @@ pipeline {
         REPO_URL = 'https://github.com/Shadow3456rh/stock-predictor.git'
         MODEL_FILE = 'models.pkl'
         GITHUB_PAT = credentials('GITHUB_PAT')
-        RECIPIENTS = 'your-email@gmail.com'
+        RECIPIENTS = 'abhishekangadismailbox@gmail.com'
     }
 
     stages {
@@ -59,20 +59,19 @@ pipeline {
 
    post {
     success {
-        emailext(
-            subject: "✅ SUCCESS: $JOB_NAME - Build #$BUILD_NUMBER",
-            body: "The Jenkins job $JOB_NAME completed successfully.\nCheck details here: $BUILD_URL",
-            recipientProviders: [[$class: 'DevelopersRecipientProvider']],
-            to: "abhishekangadismailbox@gmail.com"
-        )
+        emailext subject: "✅ Build SUCCESS: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                 body: "Good news! The pipeline ran successfully. \nCheck details at: ${env.BUILD_URL}",
+                 to: "abhishekangadismailbox@gmail.com",
+                 from: "abhishekangadismailbox@gmail.com",
+                 replyTo: "abhishekangadismailbox@gmail.com"
     }
     failure {
-        emailext(
-            subject: "❌ FAILURE: $JOB_NAME - Build #$BUILD_NUMBER",
-            body: "The Jenkins job $JOB_NAME has failed.\nCheck details here: $BUILD_URL",
-            recipientProviders: [[$class: 'DevelopersRecipientProvider']],
-            to: "abhishekangadismailbox@gmail.com"
-        )
+        emailext subject: "❌ Build FAILED: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                 body: "Oops! The pipeline failed. \nCheck logs: ${env.BUILD_URL}",
+                 to: "abhishekangadismailbox@gmail.com",
+                 from: "abhishekangadismailbox@gmail.com",
+                 replyTo: "abhishekangadismailbox@gmail.com"
     }
+}
 }
 }
