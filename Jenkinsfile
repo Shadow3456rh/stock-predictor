@@ -34,7 +34,7 @@ pipeline {
             steps {
                 script {
                     sh '''
-                    git config --global user.email "your-email@example.com"
+                    git config --global user.email "abhishekangadismailbox@gmail.com"
                     git config --global user.name "Jenkins"
 
                     git add $MODEL_FILE
