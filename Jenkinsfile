@@ -58,14 +58,27 @@ pipeline {
     }
 
  post {
-    always {
-        snsPublish(
-            topicArn: 'arn:aws:sns:us-east-1:936492767593:JenkinsNotifications',
-            subject: "Build ${env.JOB_NAME} #${env.BUILD_NUMBER} - ${currentBuild.currentResult}",
-            message: "Build log: ${env.BUILD_URL}"
-        )
+    success {
+        script {
+            sh """
+            aws sns publish --region us-east-1 \
+            --topic-arn arn:aws:sns:us-east-1:936492767593:JenkinsNotifications \
+            --message "✅ SUCCESS: Build ${env.JOB_NAME} #${env.BUILD_NUMBER} completed successfully. \nBuild log: ${env.BUILD_URL}"
+            """
+        }
+    }
+    
+    failure {
+        script {
+            sh """
+            aws sns publish --region us-east-1 \
+            --topic-arn arn:aws:sns:us-east-1:936492767593:JenkinsNotifications \
+            --message "❌ FAILURE: Build ${env.JOB_NAME} #${env.BUILD_NUMBER} failed. \nBuild log: ${env.BUILD_URL}"
+            """
+        }
     }
 }
+
 
 
 
