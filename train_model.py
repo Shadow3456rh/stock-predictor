@@ -5,7 +5,7 @@ import pickle
 import requests
 import time
 
-PUSHGATEWAY_URL = "http://3.216.214.95/:9091/metrics/job/train_model"
+PUSHGATEWAY_URL = "http://3.216.214.95/:9090/metrics/job/train_model"
 
 # Fetch data for all stocks
 start_time = time.time()
