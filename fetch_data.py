@@ -40,7 +40,7 @@ def get_stock_data(symbol, data_range="1y", interval="1d", retries=3):
     print(f"❌ Failed to fetch data for {symbol} after {retries} attempts.")
     return pd.DataFrame()
 
-# Fetch all stock data
+
 def fetch_all_stock_data():
     stock_data = {}
     for stock in STOCKS:
@@ -49,7 +49,7 @@ def fetch_all_stock_data():
             stock_data[stock] = df
     return stock_data
 
-# Example usage
+
 if __name__ == "__main__":
     stock_data = fetch_all_stock_data()
     for symbol, df in stock_data.items():
