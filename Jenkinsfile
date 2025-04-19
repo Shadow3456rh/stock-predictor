@@ -34,16 +34,21 @@ pipeline {
         stage('Commit and Push Model') {
             steps {
                 script {
-                    sh '''
-                    git config --global user.email "abhishekangadismailbox@gmail.com"
-                    git config --global user.name "Jenkins"
+            sh '''
+            git config --global user.email "abhishekangadismailbox@gmail.com"
+            git config --global user.name "Jenkins"
 
-                    git add $MODEL_FILE
-                    git commit -m "Updated models.pkl - $(date)" || echo "No changes to commit"
-                    
-                    git push https://Shadow3456rh:$GITHUB_PAT@github.com/Shadow3456rh/stock-predictor.git main
-                    '''
-                }
+            # Add the models.pkl and the stock_data folder
+            git add $MODEL_FILE
+            git add stock_data/
+
+            # Commit changes with a message including the date
+            git commit -m "Updated models.pkl and stock_data - $(date)" || echo "No changes to commit"
+            
+            # Push changes to the repository
+            git push https://Shadow3456rh:$GITHUB_PAT@github.com/Shadow3456rh/stock-predictor.git main
+            '''
+               }
             }
         }
 
