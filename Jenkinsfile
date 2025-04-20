@@ -28,7 +28,7 @@ pipeline {
 
         stage('Train Model & Upload to S3') {
             steps {
-                withCredentials([
+                withCredentials([ 
                     string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
                     string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY')
                 ]) {
@@ -46,7 +46,10 @@ pipeline {
                 sh """
                     docker stop ${env.CONTAINER_NAME} || true
                     docker rm ${env.CONTAINER_NAME} || true
-                    docker run -d --name ${env.CONTAINER_NAME} -p 5000:5000 ${env.IMAGE_NAME}
+                    docker run -d --name ${env.CONTAINER_NAME} -p 5000:5000 \
+                        -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
+                        -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
+                        ${env.IMAGE_NAME}
                 """
             }
         }
@@ -55,7 +58,7 @@ pipeline {
     post {
         success {
             script {
-                withCredentials([
+                withCredentials([ 
                     string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
                     string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY'),
                     string(credentialsId: 'AWS_SNS_TOPIC_ARN', variable: 'SNS_TOPIC_ARN')
@@ -74,7 +77,7 @@ pipeline {
 
         failure {
             script {
-                withCredentials([
+                withCredentials([ 
                     string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
                     string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY'),
                     string(credentialsId: 'AWS_SNS_TOPIC_ARN', variable: 'SNS_TOPIC_ARN')
