@@ -2,25 +2,27 @@ pipeline {
     agent any
 
     triggers {
-        cron('H/30 13-20 * * 1-5') 
+        cron('H/30 13-20 * * 1-5') // Trigger every 30 minutes between 1 PM to 8 PM UTC, Mon-Fri
     }
 
     environment {
         REPO_URL = 'https://github.com/Shadow3456rh/stock-predictor.git'
         MODEL_FILE = 'models.pkl'
-        
+        IMAGE_NAME = 'stock-predictor'
+        CONTAINER_NAME = 'stock-predictor'
+        AWS_REGION = 'us-east-1' // Default AWS region
     }
 
     stages {
         stage('Checkout Code') {
             steps {
-                git branch: 'main', credentialsId: 'GITHUB_PAT', url: "${REPO_URL}"
+                git branch: 'main', credentialsId: 'GITHUB_PAT', url: "${env.REPO_URL}"
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t stock-predictor .'
+                sh "docker build -t ${env.IMAGE_NAME} ."
             }
         }
 
@@ -30,22 +32,36 @@ pipeline {
                     string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
                     string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY')
                 ]) {
-                    sh '''
+                    sh """
                     export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
                     export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-                    docker run --rm -e AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY -v "$(pwd):/app" stock-predictor python3 /app/train_model.py
-                    '''
+                    export AWS_DEFAULT_REGION=${AWS_REGION}
+                    
+                    docker run --rm \
+                        -e AWS_ACCESS_KEY_ID \
+                        -e AWS_SECRET_ACCESS_KEY \
+                        -e AWS_DEFAULT_REGION \
+                        -v "$(pwd):/app" \
+                        ${IMAGE_NAME} python3 /app/train_model.py
+                    """
                 }
             }
         }
 
         stage('Run Docker Container') {
             steps {
-                sh '''
-                docker stop stock-predictor || true
-                docker rm stock-predictor || true
-                docker run -d --name stock-predictor -p 5000:5000 stock-predictor
-                '''
+                sh """
+                docker stop ${CONTAINER_NAME} || true
+                docker rm ${CONTAINER_NAME} || true
+                
+                docker run -d \
+                    --name ${CONTAINER_NAME} \
+                    -p 5000:5000 \
+                    -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
+                    -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
+                    -e AWS_DEFAULT_REGION=${AWS_REGION} \
+                    ${IMAGE_NAME}
+                """
             }
         }
     }
@@ -61,10 +77,11 @@ pipeline {
                     sh """
                     export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
                     export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+                    export AWS_DEFAULT_REGION=${AWS_REGION}
 
-                    aws sns publish --region us-east-1 \
-                    --topic-arn ${SNS_TOPIC_ARN} \
-                    --message "SUCCESS: Build ${env.JOB_NAME} #${env.BUILD_NUMBER} completed successfully.\\nBuild log: ${env.BUILD_URL}"
+                    aws sns publish --region ${AWS_REGION} \
+                        --topic-arn ${SNS_TOPIC_ARN} \
+                        --message "✅ SUCCESS: Build ${env.JOB_NAME} #${env.BUILD_NUMBER} completed successfully.\\n🔗 Build URL: ${env.BUILD_URL}"
                     """
                 }
             }
@@ -80,10 +97,11 @@ pipeline {
                     sh """
                     export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
                     export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+                    export AWS_DEFAULT_REGION=${AWS_REGION}
 
-                    aws sns publish --region us-east-1 \
-                    --topic-arn ${SNS_TOPIC_ARN} \
-                    --message "FAILURE: Build ${env.JOB_NAME} #${env.BUILD_NUMBER} failed.\\nBuild log: ${env.BUILD_URL}"
+                    aws sns publish --region ${AWS_REGION} \
+                        --topic-arn ${SNS_TOPIC_ARN} \
+                        --message "❌ FAILURE: Build ${env.JOB_NAME} #${env.BUILD_NUMBER} failed.\\n🔗 Build URL: ${env.BUILD_URL}"
                     """
                 }
             }
