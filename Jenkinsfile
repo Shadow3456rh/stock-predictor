@@ -40,14 +40,22 @@ pipeline {
         }
 
         stage('Run Docker Container') {
-            steps {
-                sh '''
-                docker stop stock-predictor || true
-                docker rm stock-predictor || true
-                docker run -d --name stock-predictor -p 5000:5000 stock-predictor
-                '''
-            }
+    steps {
+        withCredentials([
+            string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
+            string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY')
+        ]) {
+            sh '''
+            docker stop stock-predictor || true
+            docker rm stock-predictor || true
+            docker run -d --name stock-predictor \
+                -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
+                -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
+                -p 5000:5000 stock-predictor
+            '''
         }
+    }
+}
     }
 
     post {
