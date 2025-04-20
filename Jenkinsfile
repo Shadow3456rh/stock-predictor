@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     triggers {
-        cron('H/30 13-20 * * 1-5') // Trigger every 30 minutes between 1 PM to 8 PM UTC, Mon-Fri
+        cron('H/30 13-20 * * 1-5') 
     }
 
     environment {
@@ -10,7 +10,6 @@ pipeline {
         MODEL_FILE = 'models.pkl'
         IMAGE_NAME = 'stock-predictor'
         CONTAINER_NAME = 'stock-predictor'
-        AWS_REGION = 'us-east-1' // Default AWS region
     }
 
     stages {
@@ -30,19 +29,20 @@ pipeline {
             steps {
                 withCredentials([
                     string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
-                    string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY')
+                    string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY'),
+                    string(credentialsId: 'AWS_REGION', variable: 'AWS_REGION')
                 ]) {
                     sh """
-                    export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-                    export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-                    export AWS_DEFAULT_REGION=${AWS_REGION}
-                    
+                    export AWS_ACCESS_KEY_ID=${env.AWS_ACCESS_KEY_ID}
+                    export AWS_SECRET_ACCESS_KEY=${env.AWS_SECRET_ACCESS_KEY}
+                    export AWS_DEFAULT_REGION=${env.AWS_REGION}
+
                     docker run --rm \
-                        -e AWS_ACCESS_KEY_ID \
-                        -e AWS_SECRET_ACCESS_KEY \
-                        -e AWS_DEFAULT_REGION \
-                        -v "$(pwd):/app" \
-                        ${IMAGE_NAME} python3 /app/train_model.py
+                        -e AWS_ACCESS_KEY_ID=${env.AWS_ACCESS_KEY_ID} \
+                        -e AWS_SECRET_ACCESS_KEY=${env.AWS_SECRET_ACCESS_KEY} \
+                        -e AWS_DEFAULT_REGION=${env.AWS_REGION} \
+                        -v "\$(pwd):/app" \
+                        ${env.IMAGE_NAME} python3 /app/train_model.py
                     """
                 }
             }
@@ -50,18 +50,24 @@ pipeline {
 
         stage('Run Docker Container') {
             steps {
-                sh """
-                docker stop ${CONTAINER_NAME} || true
-                docker rm ${CONTAINER_NAME} || true
-                
-                docker run -d \
-                    --name ${CONTAINER_NAME} \
-                    -p 5000:5000 \
-                    -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
-                    -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
-                    -e AWS_DEFAULT_REGION=${AWS_REGION} \
-                    ${IMAGE_NAME}
-                """
+                withCredentials([
+                    string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
+                    string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY'),
+                    string(credentialsId: 'AWS_REGION', variable: 'AWS_REGION')
+                ]) {
+                    sh """
+                    docker stop ${env.CONTAINER_NAME} || true
+                    docker rm ${env.CONTAINER_NAME} || true
+
+                    docker run -d \
+                        --name ${env.CONTAINER_NAME} \
+                        -p 5000:5000 \
+                        -e AWS_ACCESS_KEY_ID=${env.AWS_ACCESS_KEY_ID} \
+                        -e AWS_SECRET_ACCESS_KEY=${env.AWS_SECRET_ACCESS_KEY} \
+                        -e AWS_DEFAULT_REGION=${env.AWS_REGION} \
+                        ${env.IMAGE_NAME}
+                    """
+                }
             }
         }
     }
@@ -72,16 +78,17 @@ pipeline {
                 withCredentials([
                     string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
                     string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY'),
-                    string(credentialsId: 'AWS_SNS_TOPIC_ARN', variable: 'SNS_TOPIC_ARN')
+                    string(credentialsId: 'AWS_SNS_TOPIC_ARN', variable: 'SNS_TOPIC_ARN'),
+                    string(credentialsId: 'AWS_REGION', variable: 'AWS_REGION')
                 ]) {
                     sh """
-                    export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-                    export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-                    export AWS_DEFAULT_REGION=${AWS_REGION}
+                    export AWS_ACCESS_KEY_ID=${env.AWS_ACCESS_KEY_ID}
+                    export AWS_SECRET_ACCESS_KEY=${env.AWS_SECRET_ACCESS_KEY}
+                    export AWS_DEFAULT_REGION=${env.AWS_REGION}
 
-                    aws sns publish --region ${AWS_REGION} \
-                        --topic-arn ${SNS_TOPIC_ARN} \
-                        --message "✅ SUCCESS: Build ${env.JOB_NAME} #${env.BUILD_NUMBER} completed successfully.\\n🔗 Build URL: ${env.BUILD_URL}"
+                    aws sns publish --region ${env.AWS_REGION} \
+                    --topic-arn ${env.SNS_TOPIC_ARN} \
+                    --message "SUCCESS: Build ${env.JOB_NAME} #${env.BUILD_NUMBER} completed successfully.\\nBuild log: ${env.BUILD_URL}"
                     """
                 }
             }
@@ -92,16 +99,17 @@ pipeline {
                 withCredentials([
                     string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
                     string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY'),
-                    string(credentialsId: 'AWS_SNS_TOPIC_ARN', variable: 'SNS_TOPIC_ARN')
+                    string(credentialsId: 'AWS_SNS_TOPIC_ARN', variable: 'SNS_TOPIC_ARN'),
+                    string(credentialsId: 'AWS_REGION', variable: 'AWS_REGION')
                 ]) {
                     sh """
-                    export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-                    export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-                    export AWS_DEFAULT_REGION=${AWS_REGION}
+                    export AWS_ACCESS_KEY_ID=${env.AWS_ACCESS_KEY_ID}
+                    export AWS_SECRET_ACCESS_KEY=${env.AWS_SECRET_ACCESS_KEY}
+                    export AWS_DEFAULT_REGION=${env.AWS_REGION}
 
-                    aws sns publish --region ${AWS_REGION} \
-                        --topic-arn ${SNS_TOPIC_ARN} \
-                        --message "❌ FAILURE: Build ${env.JOB_NAME} #${env.BUILD_NUMBER} failed.\\n🔗 Build URL: ${env.BUILD_URL}"
+                    aws sns publish --region ${env.AWS_REGION} \
+                    --topic-arn ${env.SNS_TOPIC_ARN} \
+                    --message "FAILURE: Build ${env.JOB_NAME} #${env.BUILD_NUMBER} failed.\\nBuild log: ${env.BUILD_URL}"
                     """
                 }
             }
