@@ -6,8 +6,14 @@
 <body>
     <h1>Stock Price Prediction</h1>
     <form method="POST">
-        <label for="ticker">Stock Symbol:</label>
-        <input type="text" name="ticker" required>
+        <label for="ticker">Select Stock:</label>
+        <select name="ticker" required>
+            <option value="GOOGL">Google (GOOGL)</option>
+            <option value="AMZN">Amazon (AMZN)</option>
+            <option value="TSLA">Tesla (TSLA)</option>
+            <option value="MSFT">Microsoft (MSFT)</option>
+            <option value="AAPL">Apple (AAPL)</option>
+        </select>
         <button type="submit">Predict</button>
     </form>
 
