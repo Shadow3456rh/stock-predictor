@@ -8,49 +8,44 @@ pipeline {
     environment {
         REPO_URL = 'https://github.com/Shadow3456rh/stock-predictor.git'
         MODEL_FILE = 'models.pkl'
-        IMAGE_NAME = 'stock-predictor'
-        CONTAINER_NAME = 'stock-predictor'
-        AWS_REGION = 'us-east-1'  // ✅ Set region directly here
+        
     }
 
     stages {
         stage('Checkout Code') {
             steps {
-                git branch: 'main', credentialsId: 'GITHUB_PAT', url: "${env.REPO_URL}"
+                git branch: 'main', credentialsId: 'GITHUB_PAT', url: "${REPO_URL}"
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                sh "docker build -t ${env.IMAGE_NAME} ."
+                sh 'docker build -t stock-predictor .'
             }
         }
 
         stage('Train Model & Upload to S3') {
             steps {
-                withCredentials([ 
+                withCredentials([
                     string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
                     string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY')
                 ]) {
-                    sh """
-                        export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-                        export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-                        docker run --rm -e AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY -v "\$(pwd):/app" ${env.IMAGE_NAME} python3 /app/train_model.py
-                    """
+                    sh '''
+                    export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+                    export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+                    docker run --rm -e AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY -v "$(pwd):/app" stock-predictor python3 /app/train_model.py
+                    '''
                 }
             }
         }
 
         stage('Run Docker Container') {
             steps {
-                sh """
-                    docker stop ${env.CONTAINER_NAME} || true
-                    docker rm ${env.CONTAINER_NAME} || true
-                    docker run -d --name ${env.CONTAINER_NAME} -p 5000:5000 \
-                        -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
-                        -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
-                        ${env.IMAGE_NAME}
-                """
+                sh '''
+                docker stop stock-predictor || true
+                docker rm stock-predictor || true
+                docker run -d --name stock-predictor -p 5000:5000 stock-predictor
+                '''
             }
         }
     }
@@ -58,18 +53,18 @@ pipeline {
     post {
         success {
             script {
-                withCredentials([ 
+                withCredentials([
                     string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
                     string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY'),
                     string(credentialsId: 'AWS_SNS_TOPIC_ARN', variable: 'SNS_TOPIC_ARN')
                 ]) {
                     sh """
-                        export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-                        export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+                    export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+                    export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
 
-                        aws sns publish --region ${env.AWS_REGION} \
-                        --topic-arn ${SNS_TOPIC_ARN} \
-                        --message "SUCCESS: Build ${env.JOB_NAME} #${env.BUILD_NUMBER} completed successfully.\nBuild log: ${env.BUILD_URL}"
+                    aws sns publish --region us-east-1 \
+                    --topic-arn ${SNS_TOPIC_ARN} \
+                    --message "SUCCESS: Build ${env.JOB_NAME} #${env.BUILD_NUMBER} completed successfully.\\nBuild log: ${env.BUILD_URL}"
                     """
                 }
             }
@@ -77,18 +72,18 @@ pipeline {
 
         failure {
             script {
-                withCredentials([ 
+                withCredentials([
                     string(credentialsId: 'AWS_ACCESS_KEY_ID', variable: 'AWS_ACCESS_KEY_ID'),
                     string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY'),
                     string(credentialsId: 'AWS_SNS_TOPIC_ARN', variable: 'SNS_TOPIC_ARN')
                 ]) {
                     sh """
-                        export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-                        export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+                    export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+                    export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
 
-                        aws sns publish --region ${env.AWS_REGION} \
-                        --topic-arn ${SNS_TOPIC_ARN} \
-                        --message "FAILURE: Build ${env.JOB_NAME} #${env.BUILD_NUMBER} failed.\nBuild log: ${env.BUILD_URL}"
+                    aws sns publish --region us-east-1 \
+                    --topic-arn ${SNS_TOPIC_ARN} \
+                    --message "FAILURE: Build ${env.JOB_NAME} #${env.BUILD_NUMBER} failed.\\nBuild log: ${env.BUILD_URL}"
                     """
                 }
             }
