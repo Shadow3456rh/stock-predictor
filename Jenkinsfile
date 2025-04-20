@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     triggers {
-        cron('H/30 13-20 * * 1-5') // Runs every 30 mins from 7PM to 1:30AM IST (Mon–Fri)
+        cron('H/30 13-20 * * 1-5') 
     }
 
     environment {
@@ -64,7 +64,7 @@ pipeline {
 
                     aws sns publish --region us-east-1 \
                     --topic-arn ${SNS_TOPIC_ARN} \
-                    --message "✅ SUCCESS: Build ${env.JOB_NAME} #${env.BUILD_NUMBER} completed successfully.\\nBuild log: ${env.BUILD_URL}"
+                    --message "SUCCESS: Build ${env.JOB_NAME} #${env.BUILD_NUMBER} completed successfully.\\nBuild log: ${env.BUILD_URL}"
                     """
                 }
             }
@@ -83,7 +83,7 @@ pipeline {
 
                     aws sns publish --region us-east-1 \
                     --topic-arn ${SNS_TOPIC_ARN} \
-                    --message "❌ FAILURE: Build ${env.JOB_NAME} #${env.BUILD_NUMBER} failed.\\nBuild log: ${env.BUILD_URL}"
+                    --message "FAILURE: Build ${env.JOB_NAME} #${env.BUILD_NUMBER} failed.\\nBuild log: ${env.BUILD_URL}"
                     """
                 }
             }
