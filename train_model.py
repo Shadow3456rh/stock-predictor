@@ -1,22 +1,42 @@
-import pandas as pd
-from sklearn.linear_model import LinearRegression
-from sklearn.metrics import mean_squared_error, r2_score
-import pickle
 import os
 import time
+import pickle
 import requests
+import pandas as pd
 import boto3
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error, r2_score
 
+# ========== CONFIG ==========
 DATA_DIR = "./stock_data"
 PUSHGATEWAY_URL = "http://34.228.29.38:9091/metrics/job/train_model"
-S3_BUCKET = "data-model-bucket-abhishek"
+BUCKET_NAME = "data-model-bucket-abhishek"  # <-- Put your S3 bucket name here
+PREFIX = "stock_data/"               # <-- Path in bucket (adjust if needed)
 
-# AWS Client
-s3 = boto3.client("s3")
+# ========== DOWNLOAD FROM S3 IF NEEDED ==========
+if not os.path.exists(DATA_DIR):
+    print(f"📦 {DATA_DIR} not found. Downloading from S3...")
 
+    s3 = boto3.client('s3',
+                      aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
+                      aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'))
+
+    os.makedirs(DATA_DIR, exist_ok=True)
+
+    response = s3.list_objects_v2(Bucket=BUCKET_NAME, Prefix=PREFIX)
+    for obj in response.get('Contents', []):
+        key = obj['Key']
+        filename = os.path.basename(key)
+        if filename:
+            download_path = os.path.join(DATA_DIR, filename)
+            print(f"⬇️  {filename}")
+            s3.download_file(BUCKET_NAME, key, download_path)
+
+print("✅ Stock data ready. Starting training...")
+
+# ========== TRAIN MODELS ==========
 start_time = time.time()
 models = {}
-
 num_models_trained = 0
 total_accuracy = 0
 total_loss = 0
@@ -53,20 +73,13 @@ for filename in os.listdir(DATA_DIR):
 avg_accuracy = total_accuracy / num_models_trained if num_models_trained else 0
 avg_loss = total_loss / num_models_trained if num_models_trained else 0
 
-# Save model
+# Save models
 with open("models.pkl", "wb") as f:
     pickle.dump(models, f)
 
-# Upload to S3
-s3.upload_file("models.pkl", S3_BUCKET, "models.pkl")
-print("📤 Uploaded models.pkl to S3.")
+print("✅ All models saved successfully!")
 
-# Upload all CSV files in stock_data/
-for file in os.listdir(DATA_DIR):
-    if file.endswith(".csv"):
-        s3.upload_file(os.path.join(DATA_DIR, file), S3_BUCKET, f"stock_data/{file}")
-        print(f"📤 Uploaded {file} to S3.")
-
+# ========== PUSH METRICS TO PROMETHEUS ==========
 end_time = time.time()
 training_duration = end_time - start_time
 
@@ -91,7 +104,7 @@ model_average_loss {avg_loss}
 try:
     response = requests.post(PUSHGATEWAY_URL, data=metrics)
     if response.status_code == 200:
-        print("📡 Metrics pushed to Prometheus.")
+        print("📡 Training metrics pushed to Prometheus.")
     else:
         print(f"❌ Failed to push metrics. Status code: {response.status_code}")
 except Exception as e:
