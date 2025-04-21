@@ -48,12 +48,12 @@ for filename in os.listdir(DATA_DIR):
 
         data = pd.read_csv(file_path, parse_dates=["Datetime"])
         data.sort_values("Datetime", inplace=True)
-        data.dropna(subset=["Open", "High", "Low", "Close"], inplace=True)
+        data.dropna(subset=["Open", "High", "Low", "Close", "Volume"], inplace=True)
 
         data["Target"] = data["Close"].shift(-1)
         data.dropna(inplace=True)
 
-        X = data[["Open", "High", "Low", "Close"]]
+        X = data[["Open", "High", "Low", "Close", "Volume"]]
         y = data["Target"]
 
         model = LinearRegression()
