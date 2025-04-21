@@ -15,7 +15,7 @@ PREFIX = "stock_data/"
 
 
 if not os.path.exists(DATA_DIR):
-    print(f"📦 {DATA_DIR} not found. Downloading from S3...")
+    print(f"{DATA_DIR} not found. Downloading from S3...")
 
     s3 = boto3.client('s3',
                       aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
