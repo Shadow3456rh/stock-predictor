@@ -10,7 +10,7 @@ pipeline {
         MODEL_FILE = 'models.pkl'
         BUCKET_NAME = 'data-model-bucket-abhishek'
         STOCK_DATA_S3_PREFIX = 'stock_data/'
-        MODEL_S3_PREFIX = 'models/'
+        MODEL_S3_PREFIX = ''
     }
 
     stages {
