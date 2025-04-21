@@ -15,7 +15,7 @@ MODEL_FILE = "models.pkl"
 s3 = boto3.client("s3")
 s3.download_file(S3_BUCKET, MODEL_FILE, MODEL_FILE)
 
-# Load model
+# Load models and scalers
 with open(MODEL_FILE, "rb") as f:
     models = pickle.load(f)
 
@@ -29,7 +29,9 @@ def index():
         try:
             ticker = request.form["ticker"].upper()
             if ticker in models:
-                model = models[ticker]
+                model_info = models[ticker]
+                model = model_info['model']
+                scaler = model_info['scaler']
 
                 stock = yf.Ticker(ticker)
                 latest_data = stock.history(period="2d")
@@ -39,19 +41,25 @@ def index():
                         latest_data["Open"].iloc[-1],
                         latest_data["High"].iloc[-1],
                         latest_data["Low"].iloc[-1],
-                        latest_data["Close"].iloc[-1]
+                        latest_data["Close"].iloc[-1],
+                        latest_data["Volume"].iloc[-1]
                     ]])
-                    prediction = model.predict(X_input)[0]
+                    # Scale input data
+                    X_input_scaled = scaler.transform(X_input)
+                    prediction = model.predict(X_input_scaled)[0]
 
                     real_price = latest_data["Close"].iloc[-1]
 
-                    X_tomorrow = np.array([[ 
+                    X_tomorrow = np.array([[
                         latest_data["Open"].iloc[-1],
                         latest_data["High"].iloc[-1],
                         latest_data["Low"].iloc[-1],
-                        prediction
+                        prediction,
+                        latest_data["Volume"].iloc[-1]
                     ]])
-                    tomorrow_prediction = model.predict(X_tomorrow)[0]
+                    # Scale tomorrow's input data
+                    X_tomorrow_scaled = scaler.transform(X_tomorrow)
+                    tomorrow_prediction = model.predict(X_tomorrow_scaled)[0]
                 else:
                     prediction = "No recent stock data available."
             else:
