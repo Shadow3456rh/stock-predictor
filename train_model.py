@@ -32,7 +32,7 @@ if not os.path.exists(DATA_DIR):
             print(f"⬇️  {filename}")
             s3.download_file(BUCKET_NAME, key, download_path)
 
-print("✅ Stock data ready. Starting training...")
+print("Stock data ready. Starting training")
 
 # ========== TRAIN MODELS ==========
 start_time = time.time()
