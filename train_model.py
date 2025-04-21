@@ -7,13 +7,13 @@ import boto3
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score
 
-# ========== CONFIG ==========
+
 DATA_DIR = "./stock_data"
 PUSHGATEWAY_URL = "http://34.228.29.38:9091/metrics/job/train_model"
-BUCKET_NAME = "data-model-bucket-abhishek"  # <-- Put your S3 bucket name here
-PREFIX = "stock_data/"               # <-- Path in bucket (adjust if needed)
+BUCKET_NAME = "data-model-bucket-abhishek"  
+PREFIX = "stock_data/"             
 
-# ========== DOWNLOAD FROM S3 IF NEEDED ==========
+
 if not os.path.exists(DATA_DIR):
     print(f"📦 {DATA_DIR} not found. Downloading from S3...")
 
