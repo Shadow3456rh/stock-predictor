@@ -6,23 +6,20 @@ import pandas as pd
 import boto3
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score
-
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split
 
 DATA_DIR = "./stock_data"
 PUSHGATEWAY_URL = "http://34.228.29.38:9091/metrics/job/train_model"
 BUCKET_NAME = "data-model-bucket-abhishek"  
 PREFIX = "stock_data/"             
 
-
 if not os.path.exists(DATA_DIR):
     print(f"{DATA_DIR} not found. Downloading from S3...")
-
     s3 = boto3.client('s3',
                       aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
                       aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'))
-
     os.makedirs(DATA_DIR, exist_ok=True)
-
     response = s3.list_objects_v2(Bucket=BUCKET_NAME, Prefix=PREFIX)
     for obj in response.get('Contents', []):
         key = obj['Key']
@@ -50,34 +47,45 @@ for filename in os.listdir(DATA_DIR):
         data.sort_values("Datetime", inplace=True)
         data.dropna(subset=["Open", "High", "Low", "Close", "Volume"], inplace=True)
 
+        if len(data) < 10:
+            print(f"Skipping {symbol}: insufficient data")
+            continue
+
         data["Target"] = data["Close"].shift(-1)
         data.dropna(inplace=True)
 
         X = data[["Open", "High", "Low", "Close", "Volume"]]
         y = data["Target"]
 
-        model = LinearRegression()
-        model.fit(X, y)
+        # Scale features
+        scaler = StandardScaler()
+        X_scaled = scaler.fit_transform(X)
 
-        y_pred = model.predict(X)
-        accuracy = r2_score(y, y_pred) * 100
-        loss = mean_squared_error(y, y_pred)
+        # Train-test split
+        X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, random_state=42)
+
+        model = LinearRegression()
+        model.fit(X_train, y_train)
+
+        y_pred = model.predict(X_test)
+        accuracy = r2_score(y_test, y_pred) * 100
+        loss = mean_squared_error(y_test, y_pred)
 
         total_accuracy += accuracy
         total_loss += loss
         num_models_trained += 1
 
-        models[symbol] = model
+        models[symbol] = {'model': model, 'scaler': scaler}
         print(f"✅ Model trained for {symbol} | Accuracy: {accuracy:.2f}% | Loss: {loss:.4f}")
 
 avg_accuracy = total_accuracy / num_models_trained if num_models_trained else 0
 avg_loss = total_loss / num_models_trained if num_models_trained else 0
 
-# Save models
+# Save models and scalers
 with open("models.pkl", "wb") as f:
     pickle.dump(models, f)
 
-print("✅ All models saved successfully!")
+print("✅ All models and scalers saved successfully!")
 
 # ========== PUSH METRICS TO PROMETHEUS ==========
 end_time = time.time()
