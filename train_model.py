@@ -80,7 +80,7 @@ for filename in os.listdir(DATA_DIR):
 
 avg_accuracy = total_accuracy / num_models_trained if num_models_trained else 0
 avg_loss = total_loss / num_models_trained if num_models_trained else 0
-
+print(avg_accuracy)
 # Save models and scalers
 with open("models.pkl", "wb") as f:
     pickle.dump(models, f)
