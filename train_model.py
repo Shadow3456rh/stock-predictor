@@ -102,11 +102,11 @@ models_trained_total {num_models_trained}
 
 # HELP model_average_accuracy_percentage Average model accuracy (Percentage)
 # TYPE model_average_accuracy_percentage gauge
-model_average_accuracy_percentage {avg_accuracy}
+model_average_accuracy_percentage {avg_accuracy:.2f}
 
 # HELP model_average_loss Average model loss (Mean Squared Error)
 # TYPE model_average_loss gauge
-model_average_loss {avg_loss}
+model_average_loss {avg_loss:.4f}
 """
 
 try:
