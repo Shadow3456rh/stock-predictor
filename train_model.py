@@ -7,8 +7,6 @@ import boto3
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
 from sklearn.preprocessing import StandardScaler
-import matplotlib.pyplot as plt
-import numpy as np
 
 DATA_DIR = "./stock_data"
 PUSHGATEWAY_URL = "http://34.228.29.38:9091/metrics/job/train_model"
@@ -124,16 +122,7 @@ for filename in os.listdir(DATA_DIR):
         models[symbol] = {'model': model, 'scaler': scaler}
         print(f"✅ Model trained for {symbol} | R²: {r2:.4f} | MSE: {mse:.4f} | MAE: {mae:.4f} | Directional Accuracy: {directional_accuracy:.2f}%")
 
-        # Plot actual vs. predicted values
-        plt.figure(figsize=(10, 5))
-        plt.plot(y_test.values, label="Actual Next Close")
-        plt.plot(y_pred, label="Predicted Next Close")
-        plt.title(f"{symbol} - Actual vs. Predicted Next Close Prices")
-        plt.legend()
-        plt.savefig(os.path.join(DATA_DIR, f"{symbol}_prediction_plot.png"))
-        plt.close()
-
-        # Check if R² is suspiciously high
+        # Warn if R² is suspiciously high
         if r2 > 0.99:
             print(f"⚠️ Warning: R² = {r2:.4f} for {symbol} is suspiciously high. Inspect data for leakage!")
 
