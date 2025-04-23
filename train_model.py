@@ -15,13 +15,13 @@ PREFIX = "stock_data/"
 MODEL_KEY = "models/models.pkl"
 PUSHGATEWAY_URL = "http://34.228.29.38:9091/metrics/job/train_model"
 
-# Initialize S3 client
+
 s3 = boto3.client('s3',
                   aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
                   aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'))
 
 print("Fetching stock data from S3...")
-# List and read CSV files from S3
+
 response = s3.list_objects_v2(Bucket=BUCKET_NAME, Prefix=PREFIX)
 stock_files = [obj['Key'] for obj in response.get('Contents', []) if obj['Key'].endswith('_data.csv')]
 
@@ -29,18 +29,17 @@ if not stock_files:
     print("No stock data found in S3. Exiting.")
     exit(1)
 
-# ========== TRAIN MODELS ==========
+
 start_time = time.time()
 models = {}
 num_models_trained = 0
 total_accuracy = 0
 total_loss = 0
-
+#######################Model training##########################################################
 for s3_key in stock_files:
     symbol = s3_key.split('/')[-1].split('_')[0]
     print(f"Processing {symbol} from {s3_key}...")
 
-    # Read CSV from S3
     response = s3.get_object(Bucket=BUCKET_NAME, Key=s3_key)
     data = pd.read_csv(response['Body'], parse_dates=["Datetime"])
     data.sort_values("Datetime", inplace=True)
@@ -56,11 +55,9 @@ for s3_key in stock_files:
     X = data[["Open", "High", "Low", "Close", "Volume"]]
     y = data["Target"]
 
-    # Scale features
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
 
-    # Train-test split
     X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.3, random_state=42)
 
     model = LinearRegression()
@@ -81,7 +78,6 @@ avg_accuracy = total_accuracy / num_models_trained if num_models_trained else 0
 avg_loss = total_loss / num_models_trained if num_models_trained else 0
 print(f"Average Accuracy: {avg_accuracy:.2f}% | Average Loss: {avg_loss:.4f}")
 
-# Save models to S3
 print("Saving models to S3...")
 model_buffer = BytesIO()
 pickle.dump(models, model_buffer)
@@ -89,13 +85,10 @@ model_buffer.seek(0)
 s3.put_object(Bucket=BUCKET_NAME, Key=MODEL_KEY, Body=model_buffer.getvalue())
 print(f"✅ Models and scalers saved to s3://{BUCKET_NAME}/{MODEL_KEY}")
 
-# ========== PUSH METRICS TO PROMETHEUS ==========
-# ... (rest of the script unchanged) ...
 
-# Push metrics to Prometheus
 end_time = time.time()
 training_duration = end_time - start_time
-
+############pushing metrics to promtheus gateway####################
 metrics = f"""
 # HELP model_training_time_seconds Time taken to train models
 # TYPE model_training_time_seconds gauge
