@@ -90,6 +90,9 @@ s3.put_object(Bucket=BUCKET_NAME, Key=MODEL_KEY, Body=model_buffer.getvalue())
 print(f"✅ Models and scalers saved to s3://{BUCKET_NAME}/{MODEL_KEY}")
 
 # ========== PUSH METRICS TO PROMETHEUS ==========
+# ... (rest of the script unchanged) ...
+
+# Push metrics to Prometheus
 end_time = time.time()
 training_duration = end_time - start_time
 
@@ -108,7 +111,7 @@ model_average_accuracy_percentage {avg_accuracy:.2f}
 
 # HELP model_average_loss Average model loss (Mean Squared Error)
 # TYPE model_average_loss gauge
-model_average Totalloss {avg_loss:.4f}
+model_average_loss {avg_loss:.4f}
 """
 
 try:
@@ -117,5 +120,6 @@ try:
         print("📡 Training metrics pushed to Prometheus.")
     else:
         print(f"❌ Failed to push metrics. Status code: {response.status_code}")
+        print(f"Response: {response.text}")  # Added for debugging
 except Exception as e:
-    print(f"❌ Error pushing metrics: {e}")
+    print(f"❌ Error pushing metrics: {e}"))
