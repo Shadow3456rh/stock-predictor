@@ -2,6 +2,7 @@ import yfinance as yf
 import pandas as pd
 import boto3
 from io import StringIO
+import os
 
 STOCKS = ["AAPL", "GOOGL", "MSFT", "AMZN", "TSLA"]
 BUCKET_NAME = "data-model-bucket-abhishek"
