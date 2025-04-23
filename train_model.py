@@ -72,7 +72,7 @@ for s3_key in stock_files:
     num_models_trained += 1
 
     models[symbol] = {'model': model, 'scaler': scaler}
-    print(f"✅ Model trained for {symbol} | Accuracy: {accuracy:.2f}% | Loss: {loss:.4f}")
+    print(f" Model trained for {symbol} | Accuracy: {accuracy:.2f}% | Loss: {loss:.4f}")
 
 avg_accuracy = total_accuracy / num_models_trained if num_models_trained else 0
 avg_loss = total_loss / num_models_trained if num_models_trained else 0
@@ -83,7 +83,7 @@ model_buffer = BytesIO()
 pickle.dump(models, model_buffer)
 model_buffer.seek(0)
 s3.put_object(Bucket=BUCKET_NAME, Key=MODEL_KEY, Body=model_buffer.getvalue())
-print(f"✅ Models and scalers saved to s3://{BUCKET_NAME}/{MODEL_KEY}")
+print(f" Models and scalers saved to s3://{BUCKET_NAME}/{MODEL_KEY}")
 
 
 end_time = time.time()
