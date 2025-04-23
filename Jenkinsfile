@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     triggers {
-        cron('H/30 13-20 * * 1-5') // Run every 30 minutes between 1 PM and 8 PM, Monday to Friday
+        cron('H/30 13-20 * * 1-5') 
     }
 
     environment {
