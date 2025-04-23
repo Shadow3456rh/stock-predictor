@@ -122,4 +122,4 @@ try:
         print(f"❌ Failed to push metrics. Status code: {response.status_code}")
         print(f"Response: {response.text}")  # Added for debugging
 except Exception as e:
-    print(f"❌ Error pushing metrics: {e}"))
+    print(f"❌ Error pushing metrics: {e}")
