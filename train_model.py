@@ -78,7 +78,7 @@ avg_accuracy = total_accuracy / num_models_trained if num_models_trained else 0
 avg_loss = total_loss / num_models_trained if num_models_trained else 0
 print(f"Average Accuracy: {avg_accuracy:.2f}% | Average Loss: {avg_loss:.4f}")
 
-print("Saving models to S3...")
+print("Saving models to S3")
 model_buffer = BytesIO()
 pickle.dump(models, model_buffer)
 model_buffer.seek(0)
