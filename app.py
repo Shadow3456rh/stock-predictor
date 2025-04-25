@@ -38,11 +38,11 @@ def index():
 
                 if len(latest_data) >= 2:
                     X_input = np.array([[
-                        latest_data["Open"].iloc[-1],
-                        latest_data["High"].iloc[-1],
-                        latest_data["Low"].iloc[-1],
-                        latest_data["Close"].iloc[-1],
-                        latest_data["Volume"].iloc[-1]
+                        latest_data["Open"].iloc[-2],
+                        latest_data["High"].iloc[-2],
+                        latest_data["Low"].iloc[-2],
+                        latest_data["Close"].iloc[-2],
+                        latest_data["Volume"].iloc[-2]
                     ]])
                     # Scale input data
                     X_input_scaled = scaler.transform(X_input)
