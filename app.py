@@ -5,19 +5,21 @@ import yfinance as yf
 import traceback
 import boto3
 import os
+from io import BytesIO
 
 app = Flask(__name__)
 
 S3_BUCKET = "data-model-bucket-abhishek"
-MODEL_FILE = "models.pkl"
+MODEL_FILE = "models/models.pkl"  # Path to models.pkl in S3
 
-# Download models.pkl from S3
-s3 = boto3.client("s3")
-s3.download_file(S3_BUCKET, MODEL_FILE, MODEL_FILE)
+# Initialize S3 client
+s3 = boto3.client("s3",
+                  aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
+                  aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'))
 
-# Load models and scalers
-with open(MODEL_FILE, "rb") as f:
-    models = pickle.load(f)
+# Load models and scalers directly from S3
+response = s3.get_object(Bucket=S3_BUCKET, Key=MODEL_FILE)
+models = pickle.load(BytesIO(response['Body'].read()))
 
 @app.route("/", methods=["GET", "POST"])
 def index():
