@@ -15,7 +15,6 @@ PREFIX = "stock_data/"
 MODEL_KEY = "models/models.pkl"
 PUSHGATEWAY_URL = "http://34.228.29.38:9091/metrics/job/train_model"
 
-
 s3 = boto3.client('s3',
                   aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
                   aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'))
@@ -29,12 +28,12 @@ if not stock_files:
     print("No stock data found in S3. Exiting.")
     exit(1)
 
-
 start_time = time.time()
 models = {}
 num_models_trained = 0
-total_accuracy = 0
 total_loss = 0
+model_metrics = []  # Store individual model metrics
+
 #######################Model training##########################################################
 for s3_key in stock_files:
     symbol = s3_key.split('/')[-1].split('_')[0]
@@ -67,16 +66,17 @@ for s3_key in stock_files:
     accuracy = r2_score(y_test, y_pred) * 100
     loss = mean_squared_error(y_test, y_pred)
 
-    total_accuracy += accuracy
     total_loss += loss
     num_models_trained += 1
+
+    # Store metrics for this model
+    model_metrics.append({'symbol': symbol, 'accuracy': accuracy, 'loss': loss})
 
     models[symbol] = {'model': model, 'scaler': scaler}
     print(f" Model trained for {symbol} | Accuracy: {accuracy:.2f}% | Loss: {loss:.4f}")
 
-avg_accuracy = total_accuracy / num_models_trained if num_models_trained else 0
 avg_loss = total_loss / num_models_trained if num_models_trained else 0
-print(f"Average Accuracy: {avg_accuracy:.2f}% | Average Loss: {avg_loss:.4f}")
+print(f"Average Loss: {avg_loss:.4f}")
 
 print("Saving models to S3")
 model_buffer = BytesIO()
@@ -85,10 +85,10 @@ model_buffer.seek(0)
 s3.put_object(Bucket=BUCKET_NAME, Key=MODEL_KEY, Body=model_buffer.getvalue())
 print(f" Models and scalers saved to s3://{BUCKET_NAME}/{MODEL_KEY}")
 
-
 end_time = time.time()
 training_duration = end_time - start_time
-############pushing metrics to promtheus gateway####################
+
+############pushing metrics to prometheus gateway####################
 metrics = f"""
 # HELP model_training_time_seconds Time taken to train models
 # TYPE model_training_time_seconds gauge
@@ -98,13 +98,17 @@ model_training_time_seconds {training_duration}
 # TYPE models_trained_total gauge
 models_trained_total {num_models_trained}
 
-# HELP model_average_accuracy_percentage Average model accuracy (Percentage)
-# TYPE model_average_accuracy_percentage gauge
-model_average_accuracy_percentage {avg_accuracy:.2f}
-
 # HELP model_average_loss Average model loss (Mean Squared Error)
 # TYPE model_average_loss gauge
 model_average_loss {avg_loss:.4f}
+"""
+
+# Add individual model R² scores
+for metric in model_metrics:
+    metrics += f"""
+# HELP model_r2_score_percentage R² score for individual model (Percentage)
+# TYPE model_r2_score_percentage gauge
+model_r2_score_percentage{{symbol="{metric['symbol']}"}} {metric['accuracy']:.2f}
 """
 
 try:
@@ -113,6 +117,6 @@ try:
         print("📡 Training metrics pushed to Prometheus.")
     else:
         print(f"❌ Failed to push metrics. Status code: {response.status_code}")
-        print(f"Response: {response.text}")  # Added for debugging
+        print(f"Response: {response.text}")
 except Exception as e:
     print(f"❌ Error pushing metrics: {e}")
