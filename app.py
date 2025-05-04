@@ -56,7 +56,7 @@ def index():
                         latest_data["Open"].iloc[-1],
                         latest_data["High"].iloc[-1],
                         latest_data["Low"].iloc[-1],
-                        prediction,
+                        latest_data["Close"].iloc[-1],
                         latest_data["Volume"].iloc[-1]
                     ]])
                     # Scale tomorrow's input data
