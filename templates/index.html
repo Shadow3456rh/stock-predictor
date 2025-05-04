@@ -8,11 +8,11 @@
     <form method="POST">
         <label for="ticker">Select Stock:</label>
         <select name="ticker" required>
-            <option value="GOOGL" {% if ticker == 'GOOGL' %}selected{% endif %}>Google (GOOGL)</option>
-            <option value="AMZN" {% if ticker == 'AMZN' %}selected{% endif %}>Amazon (AMZN)</option>
-            <option value="TSLA" {% if ticker == 'TSLA' %}selected{% endif %}>Tesla (TSLA)</option>
-            <option value="MSFT" {% if ticker == 'MSFT' %}selected{% endif %}>Microsoft (MSFT)</option>
-            <option value="AAPL" {% if ticker == 'AAPL' %}selected{% endif %}>Apple (AAPL)</option>
+            <option value="GOOGL" {% if request.form.get('ticker') == 'GOOGL' %}selected{% endif %}>Google (GOOGL)</option>
+            <option value="AMZN" {% if request.form.get('ticker') == 'AMZN' %}selected{% endif %}>Amazon (AMZN)</option>
+            <option value="TSLA" {% if request.form.get('ticker') == 'TSLA' %}selected{% endif %}>Tesla (TSLA)</option>
+            <option value="MSFT" {% if request.form.get('ticker') == 'MSFT' %}selected{% endif %}>Microsoft (MSFT)</option>
+            <option value="AAPL" {% if request.form.get('ticker') == 'AAPL' %}selected{% endif %}>Apple (AAPL)</option>
         </select>
         <button type="submit">Predict</button>
     </form>
