@@ -10,14 +10,13 @@ from io import BytesIO
 app = Flask(__name__)
 
 S3_BUCKET = "data-model-bucket-abhishek"
-MODEL_FILE = "models/models.pkl"  # Path to models.pkl in S3
+MODEL_FILE = "models/models.pkl"  
 
-# Initialize S3 client
+
 s3 = boto3.client("s3",
                   aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
                   aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'))
 
-# Load models and scalers directly from S3
 response = s3.get_object(Bucket=S3_BUCKET, Key=MODEL_FILE)
 models = pickle.load(BytesIO(response['Body'].read()))
 
@@ -46,7 +45,7 @@ def index():
                         latest_data["Close"].iloc[-2],
                         latest_data["Volume"].iloc[-2]
                     ]])
-                    # Scale input data
+                
                     X_input_scaled = scaler.transform(X_input)
                     prediction = model.predict(X_input_scaled)[0]
 
@@ -59,7 +58,7 @@ def index():
                         latest_data["Close"].iloc[-1],
                         latest_data["Volume"].iloc[-1]
                     ]])
-                    # Scale tomorrow's input data
+                  
                     X_tomorrow_scaled = scaler.transform(X_tomorrow)
                     tomorrow_prediction = model.predict(X_tomorrow_scaled)[0]
                 else:
